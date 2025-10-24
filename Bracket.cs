@@ -36,7 +36,6 @@ namespace Configurator
             const double BassHoleDiameter = 400;     // in mm
             const double mmToMeter = 0.001;          // convert mm to meters
 
-            swApp = (SldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));
             swModelDoc = (ModelDoc2)swApp.NewPart();
             swSketchMgr = swModelDoc.SketchManager;
             swFeatMgr = swModelDoc.FeatureManager;
@@ -63,7 +62,6 @@ namespace Configurator
                 swSketchSeg = swSketchMgr.CreateCircleByRadius(0, 0.475, 0, BassHoleDiameter * mmToMeter / 2);
                 swModelDoc.AddDimension2(0, 0, 0);
 
-                // swModelDoc.Extension.SelectByID2("", "SKETCHSEGMENT", 0, 0.3615, 0, false, -1, null, (int)swSelectOption_e.swSelectOptionDefault);
                 swSketchSeg.Select2(false, -1);
 
                 swSketchMgr.SketchTrim((int)swSketchTrimChoice_e.swSketchTrimClosest, 0, 0.3615, 0);

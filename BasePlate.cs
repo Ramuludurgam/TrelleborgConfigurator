@@ -35,9 +35,6 @@ namespace Configurator
 
             bool boolStatus;
 
-            // Get SolidWorks Application
-            swApp = (SldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));
-
             // Create a new part document
             swModelDoc = (ModelDoc2)swApp.NewPart();
             swSketchMgr = swModelDoc.SketchManager;

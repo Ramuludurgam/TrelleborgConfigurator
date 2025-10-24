@@ -1,9 +1,4 @@
-﻿// Required references:
-// - SolidWorks 20xx Type Library (COM) => SolidWorks.Interop.sldworks
-// - SolidWorks 20xx Constant Type Library (COM) => SolidWorks.Interop.swconst
-// Also add: using System.Runtime.InteropServices if you use Marshal.GetActiveObject()
-
-using SolidWorks.Interop.sldworks;
+﻿using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using System;
 using System.IO;
@@ -19,7 +14,6 @@ namespace Configurator
         private SldWorks swApp = swApp;
 
         private string compsPath = DestinationPath;
-        //private const string compsPath = @"C:\Users\ramul\OneDrive\Desktop\Interviews\Trellberg\MacroGenerated";
         private const string basePlate = "BasePlate.SLDPRT";
         private const string bracket = "Bracket.SLDPRT";
         private const string bushing = "Bushing.SLDPRT";
@@ -161,7 +155,6 @@ namespace Configurator
             swModelDoc.Extension.SelectByID2(plane1Info, "PLANE", 0, 0, 0, false, 0, null, 0);
             swModelDoc.Extension.SelectByID2(plane2Info, "PLANE", 0, 0, 0, true, 0, null, 0);
 
-            // Note: VBA used Distance then Coincident naming; here we follow your values.
             swAsmDoc.AddMate((int)swMateType_e.swMateDISTANCE, (int)swMateAlign_e.swMateAlignANTI_ALIGNED, false, 0.055, 0);
             swModelDoc.ClearSelection2(true);
 
@@ -203,7 +196,7 @@ namespace Configurator
             swModelDoc.ViewZoomtofit2();
             swModelDoc.EditRebuild3();
 
-            // Angle mate 8.57 degrees (converted to radians)
+            // Angle mate 8.57 degrees (converted to radians below)
             plane1Info = $"Right Plane@{compNameRibBracket}@{asmName}";
             plane2Info = $"Right Plane@{compNameBracket}@{asmName}";
 
@@ -455,7 +448,7 @@ namespace Configurator
                 comps[i - 1] = (Component2)swSelMgr.GetSelectedObjectsComponent4(i, 2);
             }
 
-            // orientations array (matching your VBA constants)
+            // orientations array
             swMirrorComponentOrientation2_e[] orientations = new swMirrorComponentOrientation2_e[comps.Length];
             for (int i = 0; i < orientations.Length; i++)
             {
@@ -464,6 +457,7 @@ namespace Configurator
 
             Feature swPlaneFeat = (Feature)swSelMgr.GetSelectedObject6(1, 1);
             RefPlane swRefMirrPlane = (RefPlane)swPlaneFeat.GetSpecificFeature2();
+           
             // Create first mirror feature
             var mirrorDef = (MirrorComponentFeatureData)swFeatMgr.CreateDefinition((int)swFeatureNameID_e.swFmMirrorComponent);
             mirrorDef.MirrorPlane = swRefMirrPlane;
@@ -544,30 +538,16 @@ namespace Configurator
             int errors = default;
             string fullPathName;
 
-            // Activate SolidWorks and assembly
+            // Activate assembly document or get the assembly model doc handle
             swApp.ActivateDoc3("TrelleBorgAsm.SLDASM", true, 0, ref errors);
 
             swModelDoc = (ModelDoc2)swApp.ActiveDoc;
 
-            fullPathName = swModelDoc.GetPathName();
-
-            // Open the assembly silently
-            swModelDoc = (ModelDoc2)swApp.OpenDoc6(
-                fullPathName,
-                (int)swDocumentTypes_e.swDocASSEMBLY,
-                (int)swOpenDocOptions_e.swOpenDocOptions_Silent,
-                "",
-                0,
-                0
-            );
-
             if (swModelDoc == null)
             {
-                MessageBox.Show("Failed to open assembly: " + fullPathName, "Error",button: MessageBoxButton.OK , icon:MessageBoxImage.Exclamation );
+                MessageBox.Show("Failed to get open assembly document: " + "TrelleBorgAsm.SLDASM", "Error", button: MessageBoxButton.OK, icon: MessageBoxImage.Exclamation);
                 return;
             }
-
-            Console.WriteLine(swModelDoc.GetTitle());
 
             // Create a new drawing document using default template
             drawingTemplate = swApp.GetUserPreferenceStringValue((int)swUserPreferenceStringValue_e.swDefaultTemplateDrawing);
@@ -579,21 +559,23 @@ namespace Configurator
                 return;
             }
 
+            fullPathName = swModelDoc.GetPathName();
+
             // Insert the standard 3 views (Front, Top, Right)
             boolStatus = swDrawingDoc.Create3rdAngleViews2(fullPathName);
 
             if (!boolStatus)
             {
-                MessageBox.Show("Failed to create standard views.", "Warning", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                MessageBox.Show("Failed to create three standard views.", "Warning", MessageBoxButton.OK, MessageBoxImage.Exclamation);
                 return;
             }
 
             ((ModelDoc2)swDrawingDoc).EditRebuild3();
 
-            // Optional: Add isometric view
+            //Add isometric view
             swDrawingDoc.CreateDrawViewFromModelView3(fullPathName, "*Isometric", 0.2, 0.16, 0.0);
 
-            // Optional: Save the drawing in the same folder as the assembly
+            //Save the drawing in the same folder as the assembly
             drawingFilePath = fullPathName.Substring(0, fullPathName.LastIndexOf('.')) + ".SLDDRW";
 
             boolStatus = ((ModelDoc2)swDrawingDoc).SaveAs(drawingFilePath);

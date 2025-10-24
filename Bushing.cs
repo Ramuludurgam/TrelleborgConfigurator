@@ -27,8 +27,6 @@ public class Bushing(SldWorks swApp, string destPath)
         //const double mmToMeter = 0.001;
 
         bool boolStatus;
-
-        swApp = (SldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));
         swModelDoc = (ModelDoc2)swApp.NewPart();
         swSketchMgr = swModelDoc.SketchManager;
         swFeatMgr = swModelDoc.FeatureManager;
